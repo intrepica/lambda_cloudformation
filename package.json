@@ -1,6 +1,6 @@
 {
   "name": "@literacyplanet/lambda_cloudformation",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "description": "Creates, updates and deletes subscriptions to sns",
   "main": "index.js",
   "author": "Tim Fairbrother",
