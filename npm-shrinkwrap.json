@@ -1,6 +1,6 @@
 {
   "name": "@literacyplanet/lambda_configure_sns_subscriptions",
-  "version": "1.0.2",
+  "version": "1.0.1",
   "dependencies": {
     "async": {
       "version": "1.5.0",
