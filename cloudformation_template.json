@@ -1,0 +1,74 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "LambdaHandlerLambda": {      
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Description": "",
+        "Handler": "",
+        "MemorySize": "",
+        "Role": "",
+        "Runtime": "",
+        "Timeout": ""
+      }
+    },
+    "FunctionTopicSubscription": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Role": "",
+        "Code": {
+          "ZipFile":  { "Fn::Join": ["\n", [
+            "var response = require('cfn-response');",
+            "exports.handler = function(event, context) {",
+            "  console.log('REQUEST RECEIVED:\\n', JSON.stringify(event));",
+            "  var responseData = {};",
+            "  if (event.RequestType == 'Delete') {",
+            "    var subscriptionArn = event.PhysicalResourceId;",
+            "    var aws = require('aws-sdk');",
+            "    var sns = new aws.SNS();",
+            "    sns.unsubscribe({SubscriptionArn: subscriptionArn}, function(err, data) {",
+            "      if (err) {",
+            "          responseData = {Error: 'Failed to unsubscribe from SNS Topic'};",
+            "          response.send(event, context, response.FAILED, responseData);",
+            "      } else {",
+            "          response.send(event, context, response.SUCCESS, data, data.SubscriptionArn);",
+            "      }",
+            "    });",
+            "    return;",
+            "  }",
+            "  if (event.RequestType == 'Create' || event.RequestType == 'Update') {",
+            "    var topicArn = event.ResourceProperties.TopicArn;",
+            "    var endpoint = event.ResourceProperties.Endpoint;",
+            "    var protocol = event.ResourceProperties.Protocol;",
+            "    if (topicArn && endpoint && protocol) {",
+            "      var aws = require('aws-sdk');",
+            "      var sns = new aws.SNS();",
+            "      sns.subscribe({TopicArn: topicArn, Endpoint: endpoint, Protocol: protocol}, function(err, data) {",
+            "        if (err) {",
+            "          responseData = {Error: 'Failed to subscribe to SNS Topic'};",
+            "          console.log(responseData.Error + ':\\n', err);",
+            "          response.send(event, context, response.FAILED, responseData);",
+            "        } else {",
+            "          response.send(event, context, response.SUCCESS, data, data.SubscriptionArn);",
+            "        }",
+            "      });",
+            "    } else {",
+            "      responseData = {Error: 'Missing one of required arguments'};",
+            "      console.log(responseData.Error);",
+            "      response.send(event, context, response.FAILED, responseData);",
+            "    }",
+            "  }",
+            "};"
+          ]]}
+        },
+        "Runtime": "nodejs",
+        "Timeout": "30"
+      }
+    }
+  }
+}

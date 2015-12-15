@@ -1,0 +1,36 @@
+{
+  "name": "@literacyplanet/lambda_configure_sns_subscriptions",
+  "version": "1.0.2",
+  "description": "Creates, updates and deletes subscriptions to sns",
+  "main": "index.js",
+  "author": "Tim Fairbrother",
+  "license": "ISC",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/intrepica/sns_configure_subscriptions"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "sns"
+  ],
+  "scripts": {
+    "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report html -- -R spec -t 10000",
+    "watch-test": "./node_modules/.bin/mocha -R spec -w",
+    "debug-test": "./node_modules/.bin/mocha -R spec --debug-brk"
+  },
+  "dependencies": {
+    "async": "^1.5.0",
+    "aws-sdk": "^2.2.20",
+    "lodash": "^3.10.1"
+  },
+  "devDependencies": {
+    "expect.js": "^0.3.1",
+    "mocha": "^2.2.4",
+    "proxyquire": "^1.4.0",
+    "sinon": "^1.14.1",
+    "coveralls": "^2.11.4",
+    "istanbul": "^0.3.17"
+  }
+}
