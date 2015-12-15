@@ -1,0 +1,20 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "lambdaHandler": {      
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": "",
+          "S3Key": ""
+        },
+        "Description": "",
+        "Handler": "",
+        "MemorySize": "",
+        "Role": "",
+        "Runtime": "",
+        "Timeout": ""
+      }
+    }
+  }
+}

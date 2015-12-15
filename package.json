@@ -1,5 +1,5 @@
 {
-  "name": "@literacyplanet/lambda_configure_sns_subscriptions",
+  "name": "@literacyplanet/lambda_cloudformation",
   "version": "1.0.2",
   "description": "Creates, updates and deletes subscriptions to sns",
   "main": "index.js",
@@ -8,7 +8,7 @@
   "private": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/intrepica/sns_configure_subscriptions"
+    "url": "https://github.com/intrepica/lambda_cloudformation"
   },
   "keywords": [
     "aws",
@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "test": "./node_modules/.bin/istanbul cover ./node_modules/mocha/bin/_mocha --report html -- -R spec -t 10000",
-    "watch-test": "./node_modules/.bin/mocha -R spec -w",
+    "watch-test": "./node_modules/.bin/mocha -R spec -w -t 3000",
     "debug-test": "./node_modules/.bin/mocha -R spec --debug-brk"
   },
   "dependencies": {

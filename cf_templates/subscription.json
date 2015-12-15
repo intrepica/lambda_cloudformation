@@ -1,10 +1,10 @@
 {
   "Type": "Custom::TopicSubscription",
-  "DependsOn": ["FunctionTopicSubscription","LambdaHandlerLambda"],
+  "DependsOn": ["FunctionTopicSubscription","lambdaHandler"],
   "Properties": {
     "ServiceToken": { "Fn::GetAtt": ["FunctionTopicSubscription", "Arn"] },
     "TopicArn": "",
-    "Endpoint": { "Fn::GetAtt": ["LambdaHandlerLambda", "Arn"] },
+    "Endpoint": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
     "Protocol": "lambda"
   }
 }

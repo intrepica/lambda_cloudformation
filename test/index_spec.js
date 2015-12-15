@@ -6,6 +6,7 @@ var _ = require('lodash');
 var path = require('path');
 var proxyquire = require('proxyquire').noPreserveCache();
 var cfTemplateFixture = require('./cloudformation_template.fixture.json');
+var uploadParamsFixture = require('./upload_params.fixture');
 
 var mock = sinon.mock;
 var stub = sinon.stub;
@@ -13,25 +14,6 @@ var stub = sinon.stub;
 describe('.upload', function() {
   var lambdaCloudformation;
   var aws;
-  var uploadParams = {
-    stackRegion: 'us-east-1',
-    stackName: 'test-stack',
-    zipFilePath: path.join(__dirname, 'lambda.fixture.zip'),
-    lambdaRole: 'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
-    lambdaRoleSnsSubscription:
-    'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
-    lambdaRuntime: 'nodejs',
-    lambdaMemorySize: 128,
-    lambdaHandler: 'index.handler',
-    lambdaDescription: 'Demo Lambda Handler',
-    lambdaS3Bucket: 'devops.example.com',
-    lambdaS3Key: 'lambda/handlers/demo_handler.zip',
-    lambdaTimeout: '3',
-    subscriptions: [
-      {arn: 'arn:aws:sns:us-east-1:xxxxxxxxx:topic_a'},
-      {arn: 'arn:aws:sns:us-east-1:xxxxxxxxx:topic_b'}
-    ]
-  };
 
   beforeEach(function() {
     aws = {};
@@ -42,7 +24,7 @@ describe('.upload', function() {
   });
 
   function upload(done) {
-    lambdaCloudformation.upload(uploadParams, done);
+    lambdaCloudformation.upload(uploadParamsFixture, done);
   }
 
   function expectItToCallbackWithError(method, done) {
@@ -66,10 +48,10 @@ describe('.upload', function() {
         aws.uploadToS3 = mock();
         aws.uploadToS3
           .withArgs({
-            region: uploadParams.stackRegion,
-            filePath: uploadParams.zipFilePath,
-            s3Bucket: uploadParams.lambdaS3Bucket,
-            s3Key: uploadParams.lambdaS3Key
+            region: uploadParamsFixture.stackRegion,
+            filePath: uploadParamsFixture.zipFilePath,
+            s3Bucket: uploadParamsFixture.lambdaS3Bucket,
+            s3Key: uploadParamsFixture.lambdaS3Key
           })
           .yields(null);
         upload(function() {
@@ -95,8 +77,8 @@ describe('.upload', function() {
         aws.describeStack = mock();
         aws.describeStack
           .withArgs({
-            region: uploadParams.stackRegion,
-            stackName: uploadParams.stackName
+            region: uploadParamsFixture.stackRegion,
+            stackName: uploadParamsFixture.stackName
           })
           .yields(null);
         upload(function() {
@@ -131,8 +113,8 @@ describe('.upload', function() {
         aws.updateStack = mock();
         aws.updateStack
           .withArgs({
-            region: uploadParams.stackRegion,
-            stackName: uploadParams.stackName,
+            region: uploadParamsFixture.stackRegion,
+            stackName: uploadParamsFixture.stackName,
             jsonTemplate: cfTemplateFixture
           })
           .yields(null);
@@ -153,8 +135,8 @@ describe('.upload', function() {
         aws.createStack = mock();
         aws.createStack
           .withArgs({
-            region: uploadParams.stackRegion,
-            stackName: uploadParams.stackName,
+            region: uploadParamsFixture.stackRegion,
+            stackName: uploadParamsFixture.stackName,
             jsonTemplate: cfTemplateFixture
           })
           .yields(null);

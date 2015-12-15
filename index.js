@@ -27,6 +27,7 @@ exports.upload = function(options, callback) {
     var templateProperties = _.pick(options,
       'lambdaRole',
       'lambdaRoleSnsSubscription',
+      'lambdaRoleDynamoSubscription',
       'lambdaRuntime',
       'lambdaMemorySize',
       'lambdaHandler',
@@ -34,7 +35,8 @@ exports.upload = function(options, callback) {
       'lambdaS3Bucket',
       'lambdaS3Key',
       'lambdaTimeout',
-      'subscriptions'
+      'subscriptions',
+      'eventSources'
     );
     var cfTemplateFixture = cloudformationBuilder
       .template(templateProperties);

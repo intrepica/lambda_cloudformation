@@ -21,6 +21,8 @@ var uploadParams = {
   lambdaRole: 'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
   lambdaRoleSnsSubscription:
   'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  lambdaRoleDynamoSubscription:
+  'arn:aws:iam::464467205470:role/lambda_basic_execution',
   lambdaRuntime: 'nodejs',
   lambdaMemorySize: 128,
   lambdaHandler: 'index.handler',
@@ -31,7 +33,15 @@ var uploadParams = {
   subscriptions: [
     {arn: 'arn:aws:sns:us-east-1:xxxxxxxxx:topic_a'},
     {arn: 'arn:aws:sns:us-east-1:xxxxxxxxx:topic_b'}
-  ]
+  ],
+  eventSources: [
+    {
+      arn: 'arn:aws:dynamodb:us-east-1:xxxxxxxxx:table/my_dynamo_table/stream/2015-12-03T01:01:02.357',
+      startingPosition: 'TRIM_HORIZON',
+      enabled: true,
+      batchSize: 1      
+    }
+  ]  
 };
 
 lambdaCloudformation.upload(uploadParams, done);
@@ -43,13 +53,13 @@ lambdaCloudformation.upload(uploadParams, done);
 npm run test
 ```
 
-###Cloudformation lambda template
+###Cloudformation Lambda template
 
-```sh
+```json
 {
   "AWSTemplateFormatVersion": "2010-09-09",
   "Resources": {
-    "LambdaHandlerLambda": {      
+    "lambdaHandler": {      
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -66,24 +76,24 @@ npm run test
     },
     "Subscription0": {
       "Type": "Custom::TopicSubscription",
-      "DependsOn": ["FunctionTopicSubscription","LambdaHandlerLambda"],
+      "DependsOn": ["FunctionTopicSubscription","lambdaHandler"],
       "Properties": {
         "ServiceToken": { "Fn::GetAtt": ["FunctionTopicSubscription", "Arn"] },
         "TopicArn": "arn:aws:sns:us-east-1:xxxxxxxxx:topic_a",
-        "Endpoint": { "Fn::GetAtt": ["LambdaHandlerLambda", "Arn"] },
+        "Endpoint": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
         "Protocol": "lambda"
       }
     },
     "Subscription1": {
       "Type": "Custom::TopicSubscription",
-      "DependsOn": ["FunctionTopicSubscription","LambdaHandlerLambda"],
+      "DependsOn": ["FunctionTopicSubscription","lambdaHandler"],
       "Properties": {
         "ServiceToken": { "Fn::GetAtt": ["FunctionTopicSubscription", "Arn"] },
         "TopicArn": "arn:aws:sns:us-east-1:xxxxxxxxx:topic_b",
-        "Endpoint": { "Fn::GetAtt": ["LambdaHandlerLambda", "Arn"] },
+        "Endpoint": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
         "Protocol": "lambda"
       }
-    },    
+    }, 
     "FunctionTopicSubscription": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
@@ -137,7 +147,78 @@ npm run test
         "Runtime": "nodejs",
         "Timeout": "30"
       }
-    }
+    },
+    "EventSource0": {
+      "Type": "Custom::EventSourceSubscription",
+      "DependsOn": ["FunctionEventSource","lambdaHandler"],
+      "Properties": {
+        "ServiceToken": { "Fn::GetAtt": ["FunctionEventSource", "Arn"] },
+        "Function": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
+        "EventSourceArn": "arn:aws:dynamodb:us-east-1:xxxxxxxxx:table/my_dynamo/stream/2015-12-03T01:01:02.357",
+        "StartingPosition": "TRIM_HORIZON",
+        "Enabled": true,
+        "BatchSize": 1
+      }
+    },     
+    "FunctionEventSource": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Handler": "index.handler",
+        "Role": "arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution",
+        "Code": {
+          "ZipFile":  { "Fn::Join": ["\n", [
+            "var response = require('cfn-response');",
+            "exports.handler = function(event, context) {",
+            "  console.log('REQUEST RECEIVED:\\n', JSON.stringify(event));",
+            "  var responseData = {};",
+            "  var aws = require('aws-sdk');",
+            "  var lambda = new aws.Lambda();",
+            "  function cb(err, data) {",
+            "    if (err) {",
+            "      responseData = {Error: 'Failed to subscribe to event source'};",
+            "      console.log(responseData.Error + ':\\n', err);",
+            "      response.send(event, context, response.FAILED, responseData);",
+            "    } else {",
+            "      response.send(event, context, response.SUCCESS, data, data.UUID);",
+            "    }",
+            "  }",
+            "  var eventSrcArn = event.ResourceProperties.EventSourceArn;",
+            "  var functionName = event.ResourceProperties.Function;",
+            "  if (event.RequestType == 'Delete') {",
+            "    lambda.listEventSourceMappings({EventSourceArn: eventSrcArn, FunctionName:functionName}, function(err, data) {",
+            "      if (err) return cb(err);",
+            "      lambda.deleteEventSourceMapping({UUID:data.EventSourceMappings[0].UUID}, cb);",
+            "    });",
+            "    return;",
+            "  } else {",
+            "    var enabled = event.ResourceProperties.Enabled === 'true' ? true : false;",
+            "    var startingPos = event.ResourceProperties.StartingPosition;",
+            "    var batchSize = event.ResourceProperties.BatchSize || 0;",
+            "    var params = {EventSourceArn:eventSrcArn, FunctionName:functionName, StartingPosition:startingPos, BatchSize:batchSize, Enabled:enabled}",
+            "    if (eventSrcArn && functionName && startingPos) {",
+            "      if (event.RequestType == 'Create') {",            
+            "        lambda.createEventSourceMapping(params, cb);",
+            "      }",            
+            "      if (event.RequestType == 'Update') {",
+            "        sns.updateEventSourceMapping(params, cb);",
+            "      }",            
+            "    } else {",
+            "      responseData = {Error: 'Missing one of required arguments'};",
+            "      console.log(responseData.Error);",
+            "      console.log(eventSrcArn, 'eventSrcArn');",
+            "      console.log(functionName, 'functionName');",
+            "      console.log(startingPos, 'startingPos');",
+            "      response.send(event, context, response.FAILED, responseData);",
+            "    }",            
+            "  }",
+            "};"
+          ]]}
+        },
+        "Runtime": "nodejs",
+        "Timeout": "30"
+      }
+    }    
   }
 }
-```
+```json
+

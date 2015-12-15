@@ -1,26 +1,17 @@
 {
-  "AWSTemplateFormatVersion": "2010-09-09",
-  "Resources": {
-    "LambdaHandlerLambda": {      
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": "",
-          "S3Key": ""
-        },
-        "Description": "",
-        "Handler": "",
-        "MemorySize": "",
-        "Role": "",
-        "Runtime": "",
-        "Timeout": ""
-      }
-    },
     "FunctionTopicSubscription": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "index.handler",
-        "Role": "",
+        "Role": {
+                "Fn::Join": [ "", [ 
+                    "arn:aws:iam::", 
+                    { "Ref": "AWS::AccountId" }, 
+                    ":role/",
+                    "lambda_basic_execution"
+                ]
+            ]
+        },
         "Code": {
           "ZipFile":  { "Fn::Join": ["\n", [
             "var response = require('cfn-response');",
@@ -70,5 +61,4 @@
         "Timeout": "30"
       }
     }
-  }
 }
