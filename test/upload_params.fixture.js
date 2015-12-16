@@ -1,9 +1,11 @@
 module.exports = {
-  lambdaRole: 'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  stackRegion: 'us-east-1',
+  stackName: 'demoStack',
+  lambdaRole: 'lambda_basic_execution',
   lambdaRoleSnsSubscription:
-  'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  'lambda_topic_subscription',
   lambdaRoleDynamoSubscription:
-  'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  'lambda_event_source_subscription',
   lambdaRuntime: 'nodejs',
   lambdaMemorySize: 128,
   lambdaHandler: 'index.handler',

@@ -1,5 +1,5 @@
 {
-    "FunctionTopicSubscription": {
+    "functionTopicSubscription": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "index.handler",
@@ -7,8 +7,7 @@
                 "Fn::Join": [ "", [ 
                     "arn:aws:iam::", 
                     { "Ref": "AWS::AccountId" }, 
-                    ":role/",
-                    "lambda_basic_execution"
+                    ":role/"
                 ]
             ]
         },
@@ -36,9 +35,10 @@
             "    var topicArn = event.ResourceProperties.TopicArn;",
             "    var endpoint = event.ResourceProperties.Endpoint;",
             "    var protocol = event.ResourceProperties.Protocol;",
+            "    var region = topicArn.split(':')[3];",
             "    if (topicArn && endpoint && protocol) {",
             "      var aws = require('aws-sdk');",
-            "      var sns = new aws.SNS();",
+            "      var sns = new aws.SNS({region:region});",
             "      sns.subscribe({TopicArn: topicArn, Endpoint: endpoint, Protocol: protocol}, function(err, data) {",
             "        if (err) {",
             "          responseData = {Error: 'Failed to subscribe to SNS Topic'};",

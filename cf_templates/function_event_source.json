@@ -1,5 +1,5 @@
 {
-    "FunctionEventSource": {
+    "functionEventSource": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "index.handler",
@@ -7,8 +7,7 @@
                 "Fn::Join": [ "", [ 
                     "arn:aws:iam::", 
                     { "Ref": "AWS::AccountId" }, 
-                    ":role/",
-                    "lambda_basic_execution"
+                    ":role/"                    
                 ]
             ]
         },

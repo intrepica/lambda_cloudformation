@@ -1,12 +1,10 @@
 {
   "Type": "Custom::EventSourceSubscription",
-  "DependsOn": ["FunctionEventSource","lambdaHandler"],
+  "DependsOn": ["functionEventSource","lambdaHandler"],
   "Properties": {
-    "ServiceToken": { "Fn::GetAtt": ["FunctionEventSource", "Arn"] },
+    "ServiceToken": { "Fn::GetAtt": ["functionEventSource", "Arn"] },
     "Function": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
     "EventSourceArn": "",
-    "StartingPosition": "TRIM_HORIZON",
-    "Enabled": true,
-    "BatchSize": 1
+    "StartingPosition": ""
   }
 }

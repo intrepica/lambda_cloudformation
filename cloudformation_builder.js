@@ -15,7 +15,7 @@ exports.template = function(options) {
   props.Description = options.lambdaDescription;
   props.Handler = options.lambdaHandler;
   props.MemorySize = options.lambdaMemorySize;
-  props.Role = options.lambdaRole;
+  props.Role['Fn::Join'][1].push(options.lambdaRole);
   props.Runtime = options.lambdaRuntime;
   props.Timeout = options.lambdaTimeout;
 
@@ -24,9 +24,9 @@ exports.template = function(options) {
       origFnTopicSubscriptionTemplate
     );
     fnTopicSubscriptionTemplate
-      .FunctionTopicSubscription
+      .functionTopicSubscription
       .Properties
-      .Role = options.lambdaRoleSnsSubscription;
+      .Role['Fn::Join'][1].push(options.lambdaRoleSnsSubscription);
     _.merge(lambdaTemplate.Resources, fnTopicSubscriptionTemplate);
     options.subscriptions.forEach(function(subscription, index) {
       var subscriptionName = 'Subscription' + index;
@@ -41,14 +41,18 @@ exports.template = function(options) {
       origFnEventSourceTemplate
     );
     fnEventSourceTemplate
-      .FunctionEventSource
+      .functionEventSource
       .Properties
-      .Role = options.lambdaRoleDynamoSubscription;
+      .Role['Fn::Join'][1].push(options.lambdaRoleDynamoSubscription);
     _.merge(lambdaTemplate.Resources, fnEventSourceTemplate);
     options.eventSources.forEach(function(eventSource, index) {
       var eventSourceName = 'EventSource' + index;
       var eventSourceTemplate = _.cloneDeep(origEventSourceTemplate);
       eventSourceTemplate.Properties.EventSourceArn = eventSource.arn;
+      eventSourceTemplate.Properties.StartingPosition =
+      eventSource.startingPosition;
+      eventSourceTemplate.Properties.Enabled = eventSource.enabled;
+      eventSourceTemplate.Properties.BatchSize = eventSource.batchSize;
       lambdaTemplate.Resources[eventSourceName] = eventSourceTemplate;
     });
   }

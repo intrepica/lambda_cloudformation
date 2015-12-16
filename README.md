@@ -18,11 +18,11 @@ var uploadParams = {
   stackRegion: 'us-east-1',
   stackName: 'test-stack',
   zipFilePath: path.join(__dirname, 'lambda.zip'),
-  lambdaRole: 'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  lambdaRole: 'lambda_basic_execution',
   lambdaRoleSnsSubscription:
-  'arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution',
+  'lambda_basic_execution',
   lambdaRoleDynamoSubscription:
-  'arn:aws:iam::464467205470:role/lambda_basic_execution',
+  'lambda_basic_execution',
   lambdaRuntime: 'nodejs',
   lambdaMemorySize: 128,
   lambdaHandler: 'index.handler',
@@ -69,16 +69,24 @@ npm run test
         "Description": "Demo Lambda Handler",
         "Handler": "index.handler",
         "MemorySize": 128,
-        "Role": "arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution",
+        "Role": {
+          "Fn::Join": [ "", [ 
+              "arn:aws:iam::", 
+              { "Ref": "AWS::AccountId" }, 
+              ":role/",
+              "lambda_basic_execution"
+            ]
+          ]
+        },
         "Runtime": "nodejs",
         "Timeout": "3"
       }
     },
     "Subscription0": {
       "Type": "Custom::TopicSubscription",
-      "DependsOn": ["FunctionTopicSubscription","lambdaHandler"],
+      "DependsOn": ["functionTopicSubscription","lambdaHandler"],
       "Properties": {
-        "ServiceToken": { "Fn::GetAtt": ["FunctionTopicSubscription", "Arn"] },
+        "ServiceToken": { "Fn::GetAtt": ["functionTopicSubscription", "Arn"] },
         "TopicArn": "arn:aws:sns:us-east-1:xxxxxxxxx:topic_a",
         "Endpoint": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
         "Protocol": "lambda"
@@ -86,19 +94,27 @@ npm run test
     },
     "Subscription1": {
       "Type": "Custom::TopicSubscription",
-      "DependsOn": ["FunctionTopicSubscription","lambdaHandler"],
+      "DependsOn": ["functionTopicSubscription","lambdaHandler"],
       "Properties": {
-        "ServiceToken": { "Fn::GetAtt": ["FunctionTopicSubscription", "Arn"] },
+        "ServiceToken": { "Fn::GetAtt": ["functionTopicSubscription", "Arn"] },
         "TopicArn": "arn:aws:sns:us-east-1:xxxxxxxxx:topic_b",
         "Endpoint": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
         "Protocol": "lambda"
       }
     }, 
-    "FunctionTopicSubscription": {
+    "functionTopicSubscription": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "index.handler",
-        "Role": "arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution",
+        "Role": {
+          "Fn::Join": [ "", [ 
+              "arn:aws:iam::", 
+              { "Ref": "AWS::AccountId" }, 
+              ":role/",
+              "lambda_basic_execution"
+            ]
+          ]
+        },
         "Code": {
           "ZipFile":  { "Fn::Join": ["\n", [
             "var response = require('cfn-response');",
@@ -150,9 +166,9 @@ npm run test
     },
     "EventSource0": {
       "Type": "Custom::EventSourceSubscription",
-      "DependsOn": ["FunctionEventSource","lambdaHandler"],
+      "DependsOn": ["functionEventSource","lambdaHandler"],
       "Properties": {
-        "ServiceToken": { "Fn::GetAtt": ["FunctionEventSource", "Arn"] },
+        "ServiceToken": { "Fn::GetAtt": ["functionEventSource", "Arn"] },
         "Function": { "Fn::GetAtt": ["lambdaHandler", "Arn"] },
         "EventSourceArn": "arn:aws:dynamodb:us-east-1:xxxxxxxxx:table/my_dynamo/stream/2015-12-03T01:01:02.357",
         "StartingPosition": "TRIM_HORIZON",
@@ -160,11 +176,19 @@ npm run test
         "BatchSize": 1
       }
     },     
-    "FunctionEventSource": {
+    "functionEventSource": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Handler": "index.handler",
-        "Role": "arn:aws:iam::xxxxxxxxx:role/lambda_basic_execution",
+        "Role": {
+          "Fn::Join": [ "", [ 
+              "arn:aws:iam::", 
+              { "Ref": "AWS::AccountId" }, 
+              ":role/",
+              "lambda_basic_execution"
+            ]
+          ]
+        },
         "Code": {
           "ZipFile":  { "Fn::Join": ["\n", [
             "var response = require('cfn-response');",

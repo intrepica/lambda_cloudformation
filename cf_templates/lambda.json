@@ -11,7 +11,14 @@
         "Description": "",
         "Handler": "",
         "MemorySize": "",
-        "Role": "",
+        "Role": {
+            "Fn::Join": [ "", [ 
+                "arn:aws:iam::", 
+                { "Ref": "AWS::AccountId" }, 
+                ":role/"
+              ]
+            ]
+        },
         "Runtime": "",
         "Timeout": ""
       }
